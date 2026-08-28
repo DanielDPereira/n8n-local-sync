@@ -55,7 +55,13 @@ def load_config() -> ProjectConfig:
 
 def get_api_key() -> str:
     """Retrieve the n8n API key from environment variables."""
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass
+
     api_key = os.environ.get("N8N_API_KEY")
     if not api_key:
-        raise ValueError("N8N_API_KEY environment variable is not set.")
+        raise ValueError("N8N_API_KEY environment variable is not set. Please set it in a .env file or export it.")
     return api_key

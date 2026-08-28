@@ -1,86 +1,104 @@
 # n8n-local-sync
 
-Uma ferramenta CLI open source para **versionar, validar, exportar, importar e sincronizar workflows de instâncias n8n self-hosted/local utilizando Git**.
+Uma ferramenta CLI open source e focada no desenvolvedor para **versionar, validar, exportar, importar e sincronizar workflows de instâncias n8n self-hosted/local utilizando Git**.
 
 ## O que é
 
-`n8n-local-sync` é uma ferramenta instalável independentemente (via `pipx` ou `pip`) projetada para ajudar desenvolvedores a versionar e compartilhar workflows do n8n de forma organizada, minimizando os conflitos de JSON e mantendo um repositório Git como a fonte da verdade.
+`n8n-local-sync` é uma ferramenta de linha de comando (instalável via `pipx` ou `pip`) projetada para ajudar desenvolvedores a gerenciar workflows do n8n de forma organizada, garantindo que o repositório Git atue como a **verdadeira fonte da verdade**.
 
-## Problema
+## Principais Funcionalidades
 
-O n8n permite exportar workflows através da UI ou CLI, mas equipes que utilizam o n8n localmente precisam de uma forma estruturada de:
-* manter workflows no Git;
-* compartilhar alterações entre desenvolvedores;
-* validar workflows antes de realizar commits;
-* reproduzir um ambiente n8n a partir do Git;
-* evitar importações manuais tediosas e propensas a erros.
-
-## Como funciona
-
-A ferramenta atua como uma ponte entre o repositório Git e a instância n8n local ou remota. Uma vez inicializada em um projeto, a ferramenta gerencia um diretório de workflows (por padrão, `n8n/workflows/`) e comunica-se com a REST API do n8n (ou outros mecanismos suportados) para sincronizar o estado.
-
-## Arquitetura
-
-O `n8n-local-sync` utiliza uma abordagem desacoplada:
-* A ferramenta é independente do ambiente n8n em si.
-* A configuração é guardada em um arquivo local do projeto (`.n8n-sync.yaml`).
-* Utiliza a REST API oficial do n8n para comunicação estável.
+- **Sincronização Bidirecional**: Importe fluxos do repositório para o n8n ou exporte fluxos do n8n para o repositório (`sync`, `import`, `export`).
+- **Validação Automática**: Verifica a sanidade e ausência de credenciais embutidas acidentalmente nos JSONs (`validate`).
+- **Suporte Multi-Ambiente**: Compatível com múltiplos ambientes, suportando URLs configuráveis (`N8N_BASE_URL`).
+- **Modo Dry-Run (Simulação)**: Visualize exatamente quais fluxos serão criados ou atualizados sem afetar a sua instância n8n (`--dry-run`).
+- **Filtro por Tags**: Exporte e organize seus fluxos segmentados por tags de equipe ou projeto (`--tag`).
+- **Integração Pre-commit**: Gancho de pré-commit pronto para bloquear *commits* de fluxos defeituosos na origem.
 
 ## Instalação via PyPI
 
-Para uso geral em seus projetos, instale através do `pipx`:
+A maneira recomendada de utilizar globalmente a ferramenta:
 
 ```bash
 pipx install n8n-local-sync
 ```
 
+*(O suporte à publicação contínua no PyPI está integrado no repositório!)*
+
 ## Instalação via GitHub
 
-Para instalar a versão mais recente diretamente do repositório:
+Para instalar a versão de ponta diretamente do repositório:
 
 ```bash
-pipx install git+https://github.com/<owner>/n8n-local-sync.git
+pipx install git+https://github.com/DanielDPereira/n8n-local-sync.git
 ```
 
-## Desenvolvimento Local
+## Configuração do Ambiente (Variáveis)
 
-```bash
-git clone https://github.com/<owner>/n8n-local-sync.git
-cd n8n-local-sync
-pip install -e .
-```
+O `n8n-local-sync` depende das seguintes variáveis de ambiente, que devem ser exportadas no seu terminal ou colocadas em um arquivo `.env` na raiz do seu projeto:
 
-## Quick Start
+- `N8N_API_KEY` **(Obrigatório)**: Uma chave de API REST válida da sua instância n8n (gerada em *Settings > n8n API*).
+- `N8N_BASE_URL` *(Opcional)*: A URL raiz da sua instância n8n. O padrão é `http://localhost:5678`. Para conectar-se à produção, basta definir `N8N_BASE_URL=https://n8n.sua-empresa.com`.
+
+## Quick Start (Guia Rápido)
 
 ```bash
 cd meu-projeto
+
+# 1. Inicializa o arquivo de configuração local (.n8n-sync.yaml) e a pasta de workflows
 n8n-sync init
-n8n-sync validate
+
+# 2. Faz o pull do n8n (importação bidirecional dos fluxos)
 n8n-sync sync
+
+# 3. Verifica alterações pendentes (Local vs n8n)
+n8n-sync status
+n8n-sync diff
 ```
 
-## Fluxo de Desenvolvimento Típico
+## Comandos Avançados
+
+### Exportação Direcionada e Tags
+
+Você pode exportar workflows segmentados baseados nas Tags que estão configuradas na sua interface n8n:
+```bash
+n8n-sync export --tag "production"
+```
+
+### Dry-Run (Modo de Simulação)
+
+Antes de rodar a sincronização, veja o que aconteceria:
+```bash
+n8n-sync sync --dry-run
+n8n-sync import --dry-run
+```
+
+## Integração com Pre-commit
+
+O `n8n-local-sync` atua perfeitamente como um hook de pre-commit para proteger seu repositório. Para usá-lo, crie ou atualize o `.pre-commit-config.yaml` no seu repositório cliente:
+
+```yaml
+repos:
+  - repo: https://github.com/DanielDPereira/n8n-local-sync
+    rev: v1.0.0  # substitua pela release desejada
+    hooks:
+      - id: n8n-sync-validate
+```
+
+## Fluxo de Desenvolvimento Típico em Equipe
 
 1. `git pull`
 2. `n8n-sync sync`
 3. (Editar fluxos no UI do n8n)
 4. `n8n-sync export`
-5. `n8n-sync validate`
+5. `n8n-sync validate` (Opcional, se o pre-commit não estiver habilitado)
 6. `git diff`
 7. `git commit`
 8. `git push`
 
-## Configuração
-
-O projeto depende de um arquivo `.n8n-sync.yaml` na raiz do seu projeto. A ferramenta criará este arquivo para você durante a execução do comando `init`.
-
 ## Credenciais
 
-**Atenção:** Workflows e credenciais são conceitos diferentes. Os workflows são versionados por esta ferramenta, mas credenciais NÃO devem ser versionadas em hipótese alguma (API keys, passwords, tokens, etc.).
-
-## Limitações
-
-A primeira versão foca na sincronização básica de workflows localizados e versionáveis no Git, sem incluir gestão de usuários, secrets, variáveis de ambiente ou deployments complexos.
+**Atenção:** Workflows e credenciais são conceitos diferentes. Os workflows são versionados por esta ferramenta, mas credenciais NÃO devem ser versionadas em hipótese alguma. O comando `validate` procura e bloqueia hardcodes identificáveis.
 
 ## Licença
 

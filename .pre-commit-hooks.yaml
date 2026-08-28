@@ -1,0 +1,7 @@
+- id: validate-n8n-workflows
+  name: Validate n8n Workflows
+  description: Validates all n8n workflows in the directory to ensure schema correctness and prevents committing embedded secrets.
+  entry: n8n-sync validate
+  language: python
+  types: [json]
+  pass_filenames: false

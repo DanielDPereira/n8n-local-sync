@@ -42,15 +42,18 @@ def import_workflows(client: N8nClient, directory_str: str):
         wf_id = wf_data.get("id")
         wf_name = wf_data.get("name", "untitled")
         
+        # n8n API strictly rejects any property that isn't in its schema for POST/PUT.
+        # We must whitelist the allowed fields.
+        allowed_keys = {"name", "nodes", "connections", "settings", "staticData", "pinData", "tags"}
+        clean_data = {k: v for k, v in wf_data.items() if k in allowed_keys}
+        
         try:
             if wf_id and wf_id in existing_ids:
                 print(f"Updating workflow '{wf_name}' (ID: {wf_id})...")
-                client.update_workflow(wf_id, wf_data)
+                client.update_workflow(wf_id, clean_data)
             else:
                 print(f"Creating new workflow '{wf_name}'...")
-                # If creating, sometimes it's safer to remove the ID so n8n generates it
-                # But n8n usually accepts ID if provided. Let's try to post as is.
-                new_wf = client.create_workflow(wf_data)
+                new_wf = client.create_workflow(clean_data)
                 print(f"Created with new ID: {new_wf.get('id')}")
             imported_count += 1
         except httpx.HTTPStatusError as e:

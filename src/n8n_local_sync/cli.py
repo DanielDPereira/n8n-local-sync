@@ -76,9 +76,27 @@ def import_workflows():
         client.close()
 
 @app.command()
-def sync():
+def sync(force: bool = typer.Option(False, "--force", help="Overwrite local modifications with remote versions")):
     """Sync workflows between n8n and the local repository."""
-    typer.secho("Not implemented yet.", fg=typer.colors.YELLOW)
+    from n8n_local_sync.config import load_config, get_api_key
+    from n8n_local_sync.api import N8nClient
+    from n8n_local_sync.sync import sync_workflows
+    
+    try:
+        config = load_config()
+        api_key = get_api_key()
+    except Exception as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+        
+    client = N8nClient(base_url=config.n8n.url, api_key=api_key)
+    try:
+        sync_workflows(client, config.workflows.directory, force=force)
+    except Exception as e:
+        typer.secho(f"Error during sync: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    finally:
+        client.close()
 
 @app.command()
 def status():

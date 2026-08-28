@@ -52,7 +52,7 @@ def export():
     finally:
         client.close()
 
-@app.command()
+@app.command("import")
 def import_workflows():
     """Import workflows from the local repository into n8n."""
     from n8n_local_sync.config import load_config, get_api_key

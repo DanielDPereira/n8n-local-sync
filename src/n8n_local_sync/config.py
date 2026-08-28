@@ -1,6 +1,8 @@
 import os
 import yaml
 from pathlib import Path
+from typing import Optional
+from n8n_local_sync.models import ProjectConfig
 
 CONFIG_FILENAME = ".n8n-sync.yaml"
 DEFAULT_WORKFLOWS_DIR = "n8n/workflows"
@@ -39,3 +41,21 @@ def init_project():
     print("1. Update the .n8n-sync.yaml with your n8n instance URL if it's not localhost.")
     print("2. Set the N8N_API_KEY environment variable (e.g. in a .env file).")
     print("3. Run 'n8n-sync export' to pull existing workflows from your instance.")
+
+def load_config() -> ProjectConfig:
+    """Load configuration from the local .n8n-sync.yaml file."""
+    config_path = Path(CONFIG_FILENAME)
+    if not config_path.exists():
+        raise FileNotFoundError(f"Configuration file '{CONFIG_FILENAME}' not found. Run 'n8n-sync init' first.")
+    
+    with open(config_path, "r") as f:
+        data = yaml.safe_load(f)
+    
+    return ProjectConfig(**data)
+
+def get_api_key() -> str:
+    """Retrieve the n8n API key from environment variables."""
+    api_key = os.environ.get("N8N_API_KEY")
+    if not api_key:
+        raise ValueError("N8N_API_KEY environment variable is not set.")
+    return api_key

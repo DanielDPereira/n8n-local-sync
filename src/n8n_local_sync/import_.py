@@ -43,8 +43,8 @@ def import_workflows(client: N8nClient, directory_str: str):
         wf_name = wf_data.get("name", "untitled")
         
         # n8n API strictly rejects any property that isn't in its schema for POST/PUT.
-        # We must whitelist the allowed fields.
-        allowed_keys = {"name", "nodes", "connections", "settings", "staticData", "pinData", "tags"}
+        # We must whitelist the allowed fields. (tags is read-only according to n8n API)
+        allowed_keys = {"name", "nodes", "connections", "settings", "staticData", "pinData"}
         clean_data = {k: v for k, v in wf_data.items() if k in allowed_keys}
         
         try:

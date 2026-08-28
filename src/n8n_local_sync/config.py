@@ -65,3 +65,13 @@ def get_api_key() -> str:
     if not api_key:
         raise ValueError("N8N_API_KEY environment variable is not set. Please set it in a .env file or export it.")
     return api_key
+
+def get_base_url(config: ProjectConfig) -> str:
+    """
+    Retrieve the n8n base URL.
+    Prioritizes N8N_BASE_URL env var, then falls back to config file.
+    """
+    env_url = os.environ.get("N8N_BASE_URL")
+    if env_url:
+        return env_url
+    return config.n8n.url

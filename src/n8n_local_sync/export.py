@@ -28,9 +28,10 @@ def clean_workflow_data(workflow: Dict[str, Any]) -> Dict[str, Any]:
     
     return workflow
 
-def export_workflows(client: N8nClient, output_dir: str, dry_run: bool = False):
+def export_workflows(client: N8nClient, output_dir: str, dry_run: bool = False, tag: str = None):
     """
     Fetch all workflows from n8n and save them to the output directory.
+    If 'tag' is provided, only workflows containing that tag (by name) will be exported.
     """
     out_path = Path(output_dir)
     
@@ -44,12 +45,27 @@ def export_workflows(client: N8nClient, output_dir: str, dry_run: bool = False):
         print("No workflows found.")
         return
 
+    exported_count = 0
     for wf_meta in workflows:
         wf_id = wf_meta.get("id")
         wf_name = wf_meta.get("name", "untitled")
         
+        if tag:
+            # Check tags. It can be a list of dicts: [{'name': 'production', 'id': 'xxx'}] or a list of strings
+            wf_tags = wf_meta.get("tags", [])
+            tag_names = []
+            for t in wf_tags:
+                if isinstance(t, dict):
+                    tag_names.append(t.get("name", ""))
+                elif isinstance(t, str):
+                    tag_names.append(t)
+            
+            if tag not in tag_names:
+                continue
+        
         if dry_run:
             print(f"[DRY-RUN] Would export workflow '{wf_name}' (ID: {wf_id}).")
+            exported_count += 1
             continue
             
         # We need to fetch the full workflow data
@@ -65,7 +81,9 @@ def export_workflows(client: N8nClient, output_dir: str, dry_run: bool = False):
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(cleaned_wf, f, indent=2, sort_keys=True)
             
+        exported_count += 1
+            
     if dry_run:
-        print(f"[DRY-RUN] Would export {len(workflows)} workflows successfully.")
+        print(f"[DRY-RUN] Would export {exported_count} workflows successfully.")
     else:
-        print(f"Exported {len(workflows)} workflows successfully.")
+        print(f"Exported {exported_count} workflows successfully.")

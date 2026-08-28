@@ -30,7 +30,10 @@ def validate():
         raise typer.Exit(code=1)
 
 @app.command()
-def export(dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the export without writing files")):
+def export(
+    dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the export without writing files"),
+    tag: str = typer.Option(None, "--tag", help="Filter workflows to export by tag")
+):
     """Export workflows from n8n into the local repository."""
     from n8n_local_sync.config import load_config, get_api_key, get_base_url
     from n8n_local_sync.api import N8nClient
@@ -46,7 +49,7 @@ def export(dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the e
         
     client = N8nClient(base_url=base_url, api_key=api_key)
     try:
-        export_workflows(client, config.workflows.directory, dry_run=dry_run)
+        export_workflows(client, config.workflows.directory, dry_run=dry_run, tag=tag)
     except Exception as e:
         typer.secho(f"Error during export: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)

@@ -8,7 +8,7 @@ from n8n_local_sync.validation import validate_workflow_file
 
 logger = logging.getLogger(__name__)
 
-def import_workflows(client: N8nClient, directory_str: str):
+def import_workflows(client: N8nClient, directory_str: str, dry_run: bool = False):
     """
     Read valid workflows from the local directory and import them into n8n.
     """
@@ -49,16 +49,25 @@ def import_workflows(client: N8nClient, directory_str: str):
         
         try:
             if wf_id and wf_id in existing_ids:
-                print(f"Updating workflow '{wf_name}' (ID: {wf_id})...")
-                client.update_workflow(wf_id, clean_data)
+                if dry_run:
+                    print(f"[DRY-RUN] Would update workflow '{wf_name}' (ID: {wf_id})...")
+                else:
+                    print(f"Updating workflow '{wf_name}' (ID: {wf_id})...")
+                    client.update_workflow(wf_id, clean_data)
             else:
-                print(f"Creating new workflow '{wf_name}'...")
-                new_wf = client.create_workflow(clean_data)
-                print(f"Created with new ID: {new_wf.get('id')}")
+                if dry_run:
+                    print(f"[DRY-RUN] Would create new workflow '{wf_name}'...")
+                else:
+                    print(f"Creating new workflow '{wf_name}'...")
+                    new_wf = client.create_workflow(clean_data)
+                    print(f"Created with new ID: {new_wf.get('id')}")
             imported_count += 1
         except httpx.HTTPStatusError as e:
             print(f"Failed to import '{wf_name}': {e.response.text}")
         except Exception as e:
             print(f"Failed to import '{wf_name}': {e}")
             
-    print(f"Imported {imported_count} workflows successfully.")
+    if dry_run:
+        print(f"[DRY-RUN] Would import {imported_count} workflows successfully.")
+    else:
+        print(f"Imported {imported_count} workflows successfully.")

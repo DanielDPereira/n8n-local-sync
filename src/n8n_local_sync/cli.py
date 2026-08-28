@@ -30,7 +30,7 @@ def validate():
         raise typer.Exit(code=1)
 
 @app.command()
-def export():
+def export(dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the export without writing files")):
     """Export workflows from n8n into the local repository."""
     from n8n_local_sync.config import load_config, get_api_key, get_base_url
     from n8n_local_sync.api import N8nClient
@@ -46,7 +46,7 @@ def export():
         
     client = N8nClient(base_url=base_url, api_key=api_key)
     try:
-        export_workflows(client, config.workflows.directory)
+        export_workflows(client, config.workflows.directory, dry_run=dry_run)
     except Exception as e:
         typer.secho(f"Error during export: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
@@ -54,7 +54,7 @@ def export():
         client.close()
 
 @app.command("import")
-def import_workflows():
+def import_workflows(dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the import without modifying n8n")):
     """Import workflows from the local repository into n8n."""
     from n8n_local_sync.config import load_config, get_api_key, get_base_url
     from n8n_local_sync.api import N8nClient
@@ -70,7 +70,7 @@ def import_workflows():
         
     client = N8nClient(base_url=base_url, api_key=api_key)
     try:
-        do_import(client, config.workflows.directory)
+        do_import(client, config.workflows.directory, dry_run=dry_run)
     except Exception as e:
         typer.secho(f"Error during import: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
@@ -78,7 +78,10 @@ def import_workflows():
         client.close()
 
 @app.command()
-def sync(force: bool = typer.Option(False, "--force", help="Overwrite local modifications with remote versions")):
+def sync(
+    force: bool = typer.Option(False, "--force", help="Overwrite local modifications with remote versions"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the sync without applying changes")
+):
     """Sync workflows between n8n and the local repository."""
     from n8n_local_sync.config import load_config, get_api_key, get_base_url
     from n8n_local_sync.api import N8nClient
@@ -94,7 +97,7 @@ def sync(force: bool = typer.Option(False, "--force", help="Overwrite local modi
         
     client = N8nClient(base_url=base_url, api_key=api_key)
     try:
-        sync_workflows(client, config.workflows.directory, force=force)
+        sync_workflows(client, config.workflows.directory, force=force, dry_run=dry_run)
     except Exception as e:
         typer.secho(f"Error during sync: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)

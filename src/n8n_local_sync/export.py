@@ -28,12 +28,14 @@ def clean_workflow_data(workflow: Dict[str, Any]) -> Dict[str, Any]:
     
     return workflow
 
-def export_workflows(client: N8nClient, output_dir: str):
+def export_workflows(client: N8nClient, output_dir: str, dry_run: bool = False):
     """
     Fetch all workflows from n8n and save them to the output directory.
     """
     out_path = Path(output_dir)
-    out_path.mkdir(parents=True, exist_ok=True)
+    
+    if not dry_run:
+        out_path.mkdir(parents=True, exist_ok=True)
 
     print("Fetching workflows from n8n...")
     workflows = client.get_workflows()
@@ -46,6 +48,10 @@ def export_workflows(client: N8nClient, output_dir: str):
         wf_id = wf_meta.get("id")
         wf_name = wf_meta.get("name", "untitled")
         
+        if dry_run:
+            print(f"[DRY-RUN] Would export workflow '{wf_name}' (ID: {wf_id}).")
+            continue
+            
         # We need to fetch the full workflow data
         print(f"Exporting workflow '{wf_name}' (ID: {wf_id})...")
         full_wf = client.get_workflow(wf_id)
@@ -59,4 +65,7 @@ def export_workflows(client: N8nClient, output_dir: str):
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(cleaned_wf, f, indent=2, sort_keys=True)
             
-    print(f"Exported {len(workflows)} workflows successfully.")
+    if dry_run:
+        print(f"[DRY-RUN] Would export {len(workflows)} workflows successfully.")
+    else:
+        print(f"Exported {len(workflows)} workflows successfully.")

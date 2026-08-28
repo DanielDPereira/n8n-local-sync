@@ -88,7 +88,25 @@ def status():
 @app.command()
 def diff():
     """Show changes between local workflows and n8n."""
-    typer.secho("Not implemented yet.", fg=typer.colors.YELLOW)
+    from n8n_local_sync.config import load_config, get_api_key
+    from n8n_local_sync.api import N8nClient
+    from n8n_local_sync.diff import show_diff
+    
+    try:
+        config = load_config()
+        api_key = get_api_key()
+    except Exception as e:
+        typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+        
+    client = N8nClient(base_url=config.n8n.url, api_key=api_key)
+    try:
+        show_diff(client, config.workflows.directory)
+    except Exception as e:
+        typer.secho(f"Error computing diff: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+    finally:
+        client.close()
 
 if __name__ == "__main__":
     app()

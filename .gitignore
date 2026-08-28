@@ -52,4 +52,5 @@ credentials/
 ehthumbs.db
 Thumbs.db
 
-n8n/
+n8n/*
+!n8n/.keep

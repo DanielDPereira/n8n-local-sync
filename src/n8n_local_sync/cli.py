@@ -16,7 +16,18 @@ def init():
 @app.command()
 def validate():
     """Validate workflows against the local configuration."""
-    typer.secho("Not implemented yet.", fg=typer.colors.YELLOW)
+    from n8n_local_sync.config import load_config
+    from n8n_local_sync.validation import validate_workflows_directory
+    
+    try:
+        config = load_config()
+    except Exception as e:
+        typer.secho(f"Error loading config: {e}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(code=1)
+        
+    is_valid = validate_workflows_directory(config.workflows.directory)
+    if not is_valid:
+        raise typer.Exit(code=1)
 
 @app.command()
 def export():

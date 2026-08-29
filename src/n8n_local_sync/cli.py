@@ -58,7 +58,15 @@ def export(
 
 @app.command("import")
 def import_workflows(dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the import without modifying n8n")):
-    """Import workflows from the local repository into n8n."""
+    """Import (push) workflows from the local repository into n8n."""
+    _do_import(dry_run)
+
+@app.command("push")
+def push_workflows(dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the import without modifying n8n")):
+    """Alias for import (push)."""
+    _do_import(dry_run)
+
+def _do_import(dry_run: bool):
     from n8n_local_sync.config import load_config, get_api_key, get_base_url
     from n8n_local_sync.api import N8nClient
     from n8n_local_sync.import_ import import_workflows as do_import
@@ -71,7 +79,7 @@ def import_workflows(dry_run: bool = typer.Option(False, "--dry-run", help="Simu
         typer.secho(f"Error: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
         
-    client = N8nClient(base_url=base_url, api_key=api_key)
+    client = N8nClient(base_url=base_url, api_key=api_key, timeout=30.0)
     try:
         do_import(client, config.workflows.directory, dry_run=dry_run)
     except Exception as e:
@@ -85,7 +93,18 @@ def sync(
     force: bool = typer.Option(False, "--force", help="Overwrite local modifications with remote versions"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the sync without applying changes")
 ):
-    """Sync workflows between n8n and the local repository."""
+    """Sync (pull) workflows between n8n and the local repository safely."""
+    _do_sync(force, dry_run)
+
+@app.command()
+def pull(
+    force: bool = typer.Option(False, "--force", help="Overwrite local modifications with remote versions"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the sync without applying changes")
+):
+    """Alias for sync (pull)."""
+    _do_sync(force, dry_run)
+
+def _do_sync(force: bool, dry_run: bool):
     from n8n_local_sync.config import load_config, get_api_key, get_base_url
     from n8n_local_sync.api import N8nClient
     from n8n_local_sync.sync import sync_workflows

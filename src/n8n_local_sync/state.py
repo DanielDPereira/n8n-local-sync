@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 STATE_FILENAME = ".n8n-sync-state.json"
 
@@ -45,3 +45,26 @@ class SyncState:
         if "workflows" in self.state and workflow_id in self.state["workflows"]:
             del self.state["workflows"][workflow_id]
             self._save_state()
+
+def evaluate_sync_state(local_data: dict, remote_data: dict, state: SyncState, wf_id: str) -> str:
+    """Evaluate the sync state: UNCHANGED, LOCAL_MODIFIED, REMOTE_MODIFIED, CONFLICT."""
+    from n8n_local_sync.normalization import get_canonical_hash
+    local_hash = get_canonical_hash(local_data)
+    remote_hash = get_canonical_hash(remote_data)
+    
+    if local_hash == remote_hash:
+        return "UNCHANGED"
+        
+    last_synced_hash = state.get_last_synced_hash(wf_id)
+    
+    if not last_synced_hash:
+        # We don't have history. Default to CONFLICT to be safe.
+        return "CONFLICT"
+        
+    if local_hash == last_synced_hash and remote_hash != last_synced_hash:
+        return "REMOTE_MODIFIED"
+    elif local_hash != last_synced_hash and remote_hash == last_synced_hash:
+        return "LOCAL_MODIFIED"
+    else:
+        # Both changed from the last synced state
+        return "CONFLICT"

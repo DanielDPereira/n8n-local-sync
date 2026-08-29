@@ -1,12 +1,14 @@
-import typer
 import json
 from pathlib import Path
 
+import typer
+
 from n8n_local_sync.api import N8nClient
-from n8n_local_sync.diff import get_local_workflows, get_remote_workflows, evaluate_sync_state
-from n8n_local_sync.export import slugify, clean_workflow_data
+from n8n_local_sync.diff import get_local_workflows, get_remote_workflows
+from n8n_local_sync.export import clean_workflow_data, slugify
 from n8n_local_sync.normalization import get_canonical_hash
-from n8n_local_sync.state import SyncState
+from n8n_local_sync.state import SyncState, evaluate_sync_state
+
 
 def sync_workflows(client: N8nClient, directory_str: str, force: bool = False, dry_run: bool = False):
     """
@@ -94,7 +96,7 @@ def sync_workflows(client: N8nClient, directory_str: str, force: bool = False, d
         elif sync_status == "CONFLICT":
             if not force:
                 typer.secho(f"Conflict detected for '{name}' (ID: {wf_id}). Skipping pull.", fg=typer.colors.RED)
-                typer.secho(f"  -> Use 'n8n-sync diff' to see differences, or run with '--force' to overwrite local.", fg=typer.colors.YELLOW)
+                typer.secho("  -> Use 'n8n-sync diff' to see differences, or run with '--force' to overwrite local.", fg=typer.colors.YELLOW)
                 skipped_count += 1
             else:
                 cleaned_remote = clean_workflow_data(remote_data)

@@ -1,12 +1,14 @@
 import json
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict
+
+import typer
+from deepdiff import DeepDiff
 
 from n8n_local_sync.api import N8nClient
-from n8n_local_sync.normalization import get_canonical_hash, normalize_workflow
-from n8n_local_sync.state import SyncState
-from deepdiff import DeepDiff
-import typer
+from n8n_local_sync.normalization import normalize_workflow
+from n8n_local_sync.state import SyncState, evaluate_sync_state
+
 
 def get_local_workflows(directory_str: str) -> Dict[str, Dict[str, Any]]:
     """Returns a dict of workflow ID -> workflow data from local files."""
@@ -48,27 +50,7 @@ def get_remote_workflows(client: N8nClient) -> Dict[str, Dict[str, Any]]:
                 pass
     return workflows
 
-def evaluate_sync_state(local_data: dict, remote_data: dict, state: SyncState, wf_id: str) -> str:
-    """Evaluate the sync state: UNCHANGED, LOCAL_MODIFIED, REMOTE_MODIFIED, CONFLICT."""
-    local_hash = get_canonical_hash(local_data)
-    remote_hash = get_canonical_hash(remote_data)
-    
-    if local_hash == remote_hash:
-        return "UNCHANGED"
-        
-    last_synced_hash = state.get_last_synced_hash(wf_id)
-    
-    if not last_synced_hash:
-        # We don't have history. Default to CONFLICT to be safe.
-        return "CONFLICT"
-        
-    if local_hash == last_synced_hash and remote_hash != last_synced_hash:
-        return "REMOTE_MODIFIED"
-    elif local_hash != last_synced_hash and remote_hash == last_synced_hash:
-        return "LOCAL_MODIFIED"
-    else:
-        # Both changed from the last synced state
-        return "CONFLICT"
+
 
 def print_deep_diff(local_data: dict, remote_data: dict):
     """Print a granular diff between normalized local and remote workflows."""

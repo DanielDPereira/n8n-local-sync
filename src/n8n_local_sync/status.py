@@ -1,10 +1,10 @@
-import typer
 from rich.console import Console
 from rich.table import Table
 
 from n8n_local_sync.api import N8nClient
-from n8n_local_sync.diff import get_local_workflows, get_remote_workflows, evaluate_sync_state
-from n8n_local_sync.state import SyncState
+from n8n_local_sync.diff import get_local_workflows, get_remote_workflows
+from n8n_local_sync.state import SyncState, evaluate_sync_state
+
 
 def show_status(client: N8nClient, directory_str: str):
     """Show the synchronization status of workflows in a table."""

@@ -1,7 +1,7 @@
 import json
 import logging
 from pathlib import Path
-from typing import Tuple, List
+from typing import List, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +39,8 @@ def validate_workflow_file(filepath: Path) -> Tuple[bool, List[str]]:
     def search_for_secrets(obj):
         if isinstance(obj, dict):
             for k, v in obj.items():
-                if any(sus in k.lower() for sus in suspicious_keys):
-                    if isinstance(v, str) and len(v) > 0 and v != "={": 
-                        # '={' is usually an n8n expression. Raw values are suspicious.
-                        if not v.startswith("={{"):
-                            errors.append(f"Potential secret found in key: '{k}'")
+                if any(sus in k.lower() for sus in suspicious_keys) and isinstance(v, str) and len(v) > 0 and v != "={" and not v.startswith("={{"):
+                    errors.append(f"Potential secret found in key: '{k}'")
                 search_for_secrets(v)
         elif isinstance(obj, list):
             for item in obj:

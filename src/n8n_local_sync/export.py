@@ -1,8 +1,8 @@
-import re
 import json
 import logging
+import re
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 from n8n_local_sync.api import N8nClient
 

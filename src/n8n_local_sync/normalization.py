@@ -1,6 +1,7 @@
-import json
 import hashlib
+import json
 from typing import Any, Dict
+
 
 def normalize_workflow(workflow: Dict[str, Any]) -> Dict[str, Any]:
     """

@@ -1,7 +1,9 @@
-import pytest
 import json
-from pathlib import Path
+
+import pytest
+
 from n8n_local_sync.validation import validate_workflow_file
+
 
 @pytest.fixture
 def valid_workflow_file(tmp_path):

@@ -1,18 +1,22 @@
+from typing import Any, Dict, List
+
 import httpx
-from typing import List, Dict, Any, Optional
-from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
+
 
 class N8nApiError(Exception):
     """Base exception for n8n API errors."""
-    pass
 
 class N8nAuthError(N8nApiError):
     """Exception for authentication errors."""
-    pass
 
 class N8nConnectionError(N8nApiError):
     """Exception for connection errors."""
-    pass
 
 class N8nClient:
     """Client for interacting with the n8n REST API."""
@@ -44,7 +48,7 @@ class N8nClient:
         try:
             return self.client.request(method, url, **kwargs)
         except (httpx.RequestError, httpx.TimeoutException) as e:
-            raise N8nConnectionError(f"Connection error: {str(e)}") from e
+            raise N8nConnectionError(f"Connection error: {e!s}") from e
 
     def get_workflows(self) -> List[Dict[str, Any]]:
         """Fetch all workflows from the n8n instance with pagination."""

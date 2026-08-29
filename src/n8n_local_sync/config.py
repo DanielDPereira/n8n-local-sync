@@ -1,7 +1,8 @@
 import os
-import yaml
 from pathlib import Path
-from typing import Optional
+
+import yaml
+
 from n8n_local_sync.models import ProjectConfig
 
 CONFIG_FILENAME = ".n8n-sync.yaml"

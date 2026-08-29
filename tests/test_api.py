@@ -1,7 +1,10 @@
-import pytest
 from unittest.mock import Mock, patch
+
 import httpx
-from n8n_local_sync.api import N8nClient, N8nAuthError, N8nApiError, N8nConnectionError
+import pytest
+
+from n8n_local_sync.api import N8nAuthError, N8nClient, N8nConnectionError
+
 
 @pytest.fixture
 def client():
@@ -12,9 +15,8 @@ def test_auth_error(client):
     mock_response.status_code = 401
     mock_response.text = "Unauthorized"
 
-    with patch.object(client.client, "request", return_value=mock_response):
-        with pytest.raises(N8nAuthError):
-            client.get_workflows()
+    with patch.object(client.client, "request", return_value=mock_response), pytest.raises(N8nAuthError):
+        client.get_workflows()
 
 def test_connection_error_retry(client):
     with patch.object(client.client, "request", side_effect=httpx.TimeoutException("timeout")) as mock_req:

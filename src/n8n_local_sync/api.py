@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 import httpx
 from tenacity import (
@@ -29,7 +29,7 @@ class N8nClient:
             timeout=timeout
         )
 
-    def _handle_response(self, response: httpx.Response) -> Dict[str, Any]:
+    def _handle_response(self, response: httpx.Response) -> dict[str, Any]:
         if response.status_code == 401 or response.status_code == 403:
             raise N8nAuthError(f"Authentication failed: {response.status_code} {response.text}")
         try:
@@ -50,7 +50,7 @@ class N8nClient:
         except (httpx.RequestError, httpx.TimeoutException) as e:
             raise N8nConnectionError(f"Connection error: {e!s}") from e
 
-    def get_workflows(self) -> List[Dict[str, Any]]:
+    def get_workflows(self) -> list[dict[str, Any]]:
         """Fetch all workflows from the n8n instance with pagination."""
         url = f"{self.base_url}/api/v1/workflows"
         workflows = []
@@ -69,19 +69,19 @@ class N8nClient:
             
         return workflows
 
-    def get_workflow(self, workflow_id: str) -> Dict[str, Any]:
+    def get_workflow(self, workflow_id: str) -> dict[str, Any]:
         """Fetch a single workflow by ID."""
         url = f"{self.base_url}/api/v1/workflows/{workflow_id}"
         response = self._request_with_retry("GET", url)
         return self._handle_response(response)
 
-    def create_workflow(self, workflow_data: Dict[str, Any]) -> Dict[str, Any]:
+    def create_workflow(self, workflow_data: dict[str, Any]) -> dict[str, Any]:
         """Create a new workflow."""
         url = f"{self.base_url}/api/v1/workflows"
         response = self._request_with_retry("POST", url, json=workflow_data)
         return self._handle_response(response)
 
-    def update_workflow(self, workflow_id: str, workflow_data: Dict[str, Any]) -> Dict[str, Any]:
+    def update_workflow(self, workflow_id: str, workflow_data: dict[str, Any]) -> dict[str, Any]:
         """Update an existing workflow."""
         url = f"{self.base_url}/api/v1/workflows/{workflow_id}"
         response = self._request_with_retry("PUT", url, json=workflow_data)

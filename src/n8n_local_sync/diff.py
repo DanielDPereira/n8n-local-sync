@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import typer
 from deepdiff import DeepDiff
@@ -10,7 +10,7 @@ from n8n_local_sync.normalization import normalize_workflow
 from n8n_local_sync.state import SyncState, evaluate_sync_state
 
 
-def get_local_workflows(directory_str: str) -> Dict[str, Dict[str, Any]]:
+def get_local_workflows(directory_str: str) -> dict[str, dict[str, Any]]:
     """Returns a dict of workflow ID -> workflow data from local files."""
     directory = Path(directory_str)
     if not directory.exists() or not directory.is_dir():
@@ -30,7 +30,7 @@ def get_local_workflows(directory_str: str) -> Dict[str, Dict[str, Any]]:
             pass
     return workflows
 
-def get_remote_workflows(client: N8nClient) -> Dict[str, Dict[str, Any]]:
+def get_remote_workflows(client: N8nClient) -> dict[str, dict[str, Any]]:
     """Returns a dict of workflow ID -> workflow data from n8n API."""
     try:
         remote_list = client.get_workflows()
@@ -71,10 +71,10 @@ def print_deep_diff(local_data: dict, remote_data: dict):
             typer.echo(f"      Local:  {change['old_value']}")
             typer.echo(f"      Remote: {change['new_value']}")
     if "iterable_item_added" in diff:
-        for item, value in diff["iterable_item_added"].items():
+        for item in diff["iterable_item_added"]:
             typer.echo(f"  + Added item to list: {item}")
     if "iterable_item_removed" in diff:
-        for item, value in diff["iterable_item_removed"].items():
+        for item in diff["iterable_item_removed"]:
             typer.echo(f"  - Removed item from list: {item}")
 
 def show_diff(client: N8nClient, directory_str: str):

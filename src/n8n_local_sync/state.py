@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 STATE_FILENAME = ".n8n-sync-state.json"
 
@@ -10,7 +10,7 @@ class SyncState:
         self.state_file = self.directory / STATE_FILENAME
         self.state = self._load_state()
 
-    def _load_state(self) -> Dict[str, Any]:
+    def _load_state(self) -> dict[str, Any]:
         """Load state from the state file."""
         if not self.state_file.exists():
             return {"workflows": {}}

@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import json
 import logging
 import re
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from n8n_local_sync.api import N8nClient
 
@@ -16,7 +18,7 @@ def slugify(text: str) -> str:
     text = text.strip('-')
     return text
 
-def clean_workflow_data(workflow: Dict[str, Any]) -> Dict[str, Any]:
+def clean_workflow_data(workflow: dict[str, Any]) -> dict[str, Any]:
     """
     Remove ephemeral fields from workflow data so that
     Git diffs remain clean.
@@ -28,7 +30,7 @@ def clean_workflow_data(workflow: Dict[str, Any]) -> Dict[str, Any]:
     
     return workflow
 
-def export_workflows(client: N8nClient, output_dir: str, dry_run: bool = False, tag: str = None):
+def export_workflows(client: N8nClient, output_dir: str, dry_run: bool = False, tag: str | None = None):
     """
     Fetch all workflows from n8n and save them to the output directory.
     If 'tag' is provided, only workflows containing that tag (by name) will be exported.

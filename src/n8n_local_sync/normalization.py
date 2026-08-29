@@ -1,9 +1,9 @@
 import hashlib
 import json
-from typing import Any, Dict
+from typing import Any
 
 
-def normalize_workflow(workflow: Dict[str, Any]) -> Dict[str, Any]:
+def normalize_workflow(workflow: dict[str, Any]) -> dict[str, Any]:
     """
     Remove volatile metadata from workflow data so that
     hashes and Git diffs remain deterministic.
@@ -28,7 +28,7 @@ def normalize_workflow(workflow: Dict[str, Any]) -> Dict[str, Any]:
         # Sort targets within connections
         for source_node, connections in normalized["connections"].items():
             if isinstance(connections, dict):
-                for output_type, targets in connections.items():
+                for targets in connections.values():
                     if isinstance(targets, list):
                         # targets is a list of lists: [[{"node": "Next", "type": "main", "index": 0}]]
                         for i, target_group in enumerate(targets):
@@ -41,7 +41,7 @@ def normalize_workflow(workflow: Dict[str, Any]) -> Dict[str, Any]:
 
     return normalized
 
-def normalize_node(node: Dict[str, Any]) -> Dict[str, Any]:
+def normalize_node(node: dict[str, Any]) -> dict[str, Any]:
     """Normalize a single node."""
     normalized = node.copy()
     if "position" in normalized:
@@ -49,10 +49,10 @@ def normalize_node(node: Dict[str, Any]) -> Dict[str, Any]:
         # Not removing entirely because layout matters for n8n GUI
         # Keep as is, position changes DO matter for UI, but could be rounded to ints
         if isinstance(normalized["position"], list) and len(normalized["position"]) == 2:
-            normalized["position"] = [int(round(float(p))) for p in normalized["position"]]
+            normalized["position"] = [round(float(p)) for p in normalized["position"]]
     return normalized
 
-def get_canonical_hash(workflow: Dict[str, Any]) -> str:
+def get_canonical_hash(workflow: dict[str, Any]) -> str:
     """
     Return a SHA-256 hash of the normalized workflow.
     Ensures deterministic JSON encoding.

@@ -9,6 +9,7 @@ from n8n_local_sync.import_ import import_workflows
 from n8n_local_sync.normalization import get_canonical_hash
 from n8n_local_sync.state import SyncState
 
+
 @pytest.fixture
 def temp_dir(tmp_path):
     return str(tmp_path)

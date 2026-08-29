@@ -41,3 +41,6 @@ addopts = "-ra -q"
 testpaths = [
     "tests",
 ]
+
+[tool.ruff.lint]
+ignore = ["BLE001", "S110", "SIM102"]

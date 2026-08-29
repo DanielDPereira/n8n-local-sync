@@ -1,11 +1,10 @@
 import json
 import logging
 from pathlib import Path
-from typing import List, Tuple
 
 logger = logging.getLogger(__name__)
 
-def validate_workflow_file(filepath: Path) -> Tuple[bool, List[str]]:
+def validate_workflow_file(filepath: Path) -> tuple[bool, list[str]]:
     """
     Validates a single workflow JSON file.
     Returns a tuple (is_valid, list_of_errors).

@@ -92,6 +92,40 @@ Configuration resolves in the following priority:
 > [!IMPORTANT]
 > Never store your `N8N_API_KEY` in the `.n8n-sync.yaml` file. Always use environment variables or a `.env` file (which is ignored by Git).
 
+### 🔄 Synching (Pulling) Remote Changes
+
+Update your local repository with changes made directly in the n8n UI. The sync command evaluates the state of each workflow and avoids overwriting local modifications unless forced.
+
+```bash
+n8n-sync sync  # or n8n-sync pull
+```
+
+**GitOps States Handled During Pull:**
+- `UNCHANGED`: Skipped safely.
+- `REMOTE_MODIFIED`: Remote changes are pulled, updating the local file.
+- `LOCAL_MODIFIED`: Skipped with a warning (to protect local unpushed work). Use `--force` to overwrite local changes.
+- `CONFLICT` (both changed): Skipped with a warning. Use `--force` to overwrite local with remote.
+- `REMOTE_ONLY`: New remote workflows are pulled and saved locally.
+- `LOCAL_ONLY`: Ignored by pull (use `push` to upload them).
+
+*Note: Deletions are not automatically synced in either direction to prevent accidental data loss. If you delete a workflow in n8n, delete the local file manually.*
+
+### 📤 Pushing Local Changes
+
+Upload your local Git-versioned workflows to the remote n8n instance. Like pull, push is state-aware.
+
+```bash
+n8n-sync import  # or n8n-sync push
+```
+
+**GitOps States Handled During Push:**
+- `UNCHANGED`: Skipped safely.
+- `LOCAL_MODIFIED`: Pushed to remote, updating the n8n workflow.
+- `REMOTE_MODIFIED`: Skipped with a warning (to protect remote changes). Use `--force` to overwrite remote changes.
+- `CONFLICT` (both changed): Skipped with a warning. Use `--force` to overwrite remote with local.
+- `LOCAL_ONLY`: Creates a new workflow in n8n. The local file is automatically updated with the new ID assigned by n8n.
+- `REMOTE_ONLY`: Ignored by push (use `pull` to download them).
+
 ## CLI Reference
 
 - `n8n-sync init`: Initializes a project, creating `.n8n-sync.yaml` and `.env.example`.

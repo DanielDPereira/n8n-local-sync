@@ -1,4 +1,5 @@
 import typer
+
 from n8n_local_sync.config import init_project
 
 app = typer.Typer(help="CLI for syncing local n8n workflows with git")
@@ -35,8 +36,8 @@ def export(
     tag: str = typer.Option(None, "--tag", help="Filter workflows to export by tag")
 ):
     """Export workflows from n8n into the local repository."""
-    from n8n_local_sync.config import load_config, get_api_key, get_base_url
     from n8n_local_sync.api import N8nClient
+    from n8n_local_sync.config import get_api_key, get_base_url, load_config
     from n8n_local_sync.export import export_workflows
     
     try:
@@ -57,18 +58,24 @@ def export(
         client.close()
 
 @app.command("import")
-def import_workflows(dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the import without modifying n8n")):
+def import_workflows(
+    force: bool = typer.Option(False, "--force", help="Overwrite remote workflows even if they have been modified"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the import without modifying n8n")
+):
     """Import (push) workflows from the local repository into n8n."""
-    _do_import(dry_run)
+    _do_import(force, dry_run)
 
 @app.command("push")
-def push_workflows(dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the import without modifying n8n")):
+def push_workflows(
+    force: bool = typer.Option(False, "--force", help="Overwrite remote workflows even if they have been modified"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Simulate the import without modifying n8n")
+):
     """Alias for import (push)."""
-    _do_import(dry_run)
+    _do_import(force, dry_run)
 
-def _do_import(dry_run: bool):
-    from n8n_local_sync.config import load_config, get_api_key, get_base_url
+def _do_import(force: bool, dry_run: bool):
     from n8n_local_sync.api import N8nClient
+    from n8n_local_sync.config import get_api_key, get_base_url, load_config
     from n8n_local_sync.import_ import import_workflows as do_import
     
     try:
@@ -81,7 +88,7 @@ def _do_import(dry_run: bool):
         
     client = N8nClient(base_url=base_url, api_key=api_key, timeout=30.0)
     try:
-        do_import(client, config.workflows.directory, dry_run=dry_run)
+        do_import(client, config.workflows.directory, force=force, dry_run=dry_run)
     except Exception as e:
         typer.secho(f"Error during import: {e}", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=1)
@@ -105,8 +112,8 @@ def pull(
     _do_sync(force, dry_run)
 
 def _do_sync(force: bool, dry_run: bool):
-    from n8n_local_sync.config import load_config, get_api_key, get_base_url
     from n8n_local_sync.api import N8nClient
+    from n8n_local_sync.config import get_api_key, get_base_url, load_config
     from n8n_local_sync.sync import sync_workflows
     
     try:
@@ -129,8 +136,8 @@ def _do_sync(force: bool, dry_run: bool):
 @app.command()
 def status():
     """Show the status of workflows."""
-    from n8n_local_sync.config import load_config, get_api_key, get_base_url
     from n8n_local_sync.api import N8nClient
+    from n8n_local_sync.config import get_api_key, get_base_url, load_config
     from n8n_local_sync.status import show_status
     
     try:
@@ -153,8 +160,8 @@ def status():
 @app.command()
 def diff():
     """Show changes between local workflows and n8n."""
-    from n8n_local_sync.config import load_config, get_api_key, get_base_url
     from n8n_local_sync.api import N8nClient
+    from n8n_local_sync.config import get_api_key, get_base_url, load_config
     from n8n_local_sync.diff import show_diff
     
     try:
